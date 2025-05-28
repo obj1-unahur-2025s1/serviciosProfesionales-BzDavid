@@ -1,0 +1,157 @@
+import clasesProfesionales.*
+import profesionales.*
+
+describe "Grupo de tests para la empresa. Etapa 1" {
+  method initialize() {
+    empresa.contratarProfesional(juana)
+    empresa.contratarProfesional(melina)
+    empresa.contratarProfesional(rocio)
+    empresa.contratarProfesional(luciana)
+  }
+
+  test "En la empresa dos de sus profesionales estudiaron en Rosario" {
+    assert.equals(empresa.cuantosProfesionalesEstudiaronEn_(universidadDeRosario), 2)
+  }
+
+  test "En la empresa uno de sus profesionales estudió en Hurlingham" {
+    assert.equals(empresa.cuantosProfesionalesEstudiaronEn_(universidadDeHurlingham), 1)
+  }
+
+  test "En la empresa ninguno de sus empleados estudió en San Martín" {
+    assert.equals(empresa.cuantosProfesionalesEstudiaronEn_(universidadDeSanMartin), 0)
+  }
+
+  test "En la empresa como profesionales caros, solamente tienen a Rocío." {
+    assert.equals(empresa.conjuntoDeProfesionalesCaros().size(), 1)
+  }
+
+  test "En la empresa tienen como universidades formadoras, a las de Rosario, Corrientes y Hurlingham." {
+    assert.equals(empresa.conjuntoDeUniversidadesFormadoras().size(), 3)
+  }
+
+  test "En la empresa tienen como profesional más barato a Juana" {
+    assert.equals(empresa.profesionalMasBarato(), juana)
+  }
+
+  test "La empresa es de gente acotada" {
+    assert.that(empresa.esDeGenteAcotada())
+  }
+
+  test "La empresa deja de ser de gente acotada cuando le agregamos provincias a Luciana." {
+    luciana.agregarProvincia("Corrientes")
+    luciana.agregarProvincia("Misiones")
+    assert.notThat(empresa.esDeGenteAcotada())
+  }
+
+  test "En la empresa" {
+    assert.equals(100, 100)
+  }
+}
+
+describe "Grupo de tests para la empresa. Etapa 2" {
+  method contratar() {
+    empresa.contratarProfesional(juana)
+    empresa.contratarProfesional(melina)
+    empresa.contratarProfesional(rocio)
+    empresa.contratarProfesional(luciana)
+  }
+  
+  test "Cada persona puede ser atendida por los profesionales que pueden trabajar en la provincia donde vive esa persona." {
+    assert.that(mirna.puedeSerAtendidoPor_(luciana))
+    assert.notThat(ruben.puedeSerAtendidoPor_(luciana))
+  }
+
+  test "Cada institución tiene una lista de universidades reconocidas por las que puede ser atendida por los profesionales que estudiaron en alguna de las universidades." {
+    assert.that(asociadosPorLaPaz.puedeSerAtendidoPor_(juana))
+    assert.notThat(asociadosPorLaPaz.puedeSerAtendidoPor_(rocio))
+  }
+
+  test "Cada club tiene una lista de provincias donde puede ser atendido por los profesionales que pueden trabajar en esas provincias." {
+    assert.that(clubRojo.puedeSerAtendidoPor_(juana))
+    assert.notThat(clubBlanco.puedeSerAtendidoPor_(juana))
+  }
+
+  test "La empresa puede satisfacer a un solicitante si el solicitante puede ser atendido por, al menos, uno de los profesionales contratados por la empresa." {
+    self.contratar()
+    assert.that(empresa.puedeSatisfacerAlCliente_(mirna))
+    assert.that(empresa.puedeSatisfacerAlCliente_(clubRojo))
+    assert.that(empresa.puedeSatisfacerAlCliente_(asociadosPorLaPaz))
+  }
+}
+
+describe "Grupo de tests para la empresa. Etapa 3" {
+  method initialize() {
+    empresa.contratarProfesional(juana)
+    empresa.contratarProfesional(melina)
+    empresa.contratarProfesional(rocio)
+    empresa.contratarProfesional(luciana)
+  }
+  test "Cuando cobran, los profesionales vinculados le donan la mitad a la universidad, y la otra mitad la gastan inmediatamente" {
+    juana.cobrarDinero(10000)
+    assert.equals(universidadDeRosario.totalDeDonacionesRecibidas(), 5000)
+  }
+
+  test "Las universidades mantienen registro del dinero que les donan" {
+    juana.cobrarDinero(10000)
+    juana.cobrarDinero(5000)
+    assert.equals(universidadDeRosario.totalDeDonacionesRecibidas(), 7500)
+  }
+
+  test "Los profesionales asociados le dan todo lo que cobran a la Asociación de Profesionales del Litoral." {
+    melina.cobrarDinero(10000)
+    assert.equals(asociacionProfesionalesLitoral.totalRecaudado(), 10000)
+  }
+
+  test "Los profesionales libres se guardan todo lo que cobran. Debe mantenerse el total recaudado por cada uno." {
+    rocio.cobrarDinero(10000)
+    assert.equals(rocio.dinero(), 10000)
+    luciana.cobrarDinero(5000)
+    assert.equals(luciana.dinero(), 5000)
+  }
+
+  test "Un profesional libre le puede pasar una cantidad X de dinero a otro" {
+    rocio.cobrarDinero(5000)
+    luciana.cobrarDinero(5000)
+    rocio.pasarCantidad_DeDineroA_(2000, luciana)
+    assert.equals(rocio.dinero(), 3000)
+    assert.equals(luciana.dinero(), 7000)
+  }
+  
+  test "Un profesional libre no le puede pasar una cantidad X de dinero a otro si no tiene suficiente dinero" {
+    rocio.cobrarDinero(1000)
+    rocio.pasarCantidad_DeDineroA_(2000, luciana)
+    assert.equals(rocio.dinero(), 1000)
+    assert.equals(luciana.dinero(), 0)
+  }
+}
+
+describe "Grupo de tests para la empresa. Etapa 4" {
+  method initialize() {
+    empresa.contratarProfesional(juana)
+    empresa.contratarProfesional(melina)
+    empresa.contratarProfesional(rocio)
+    empresa.contratarProfesional(luciana)
+  }
+  test "La empresa puede atender al cliente, esta atención se registra y el profesional cobra" {
+    empresa.darServicio(ruben)
+    assert.that(empresa.tieneCliente_(ruben))
+    assert.equals(rocio.dinero(), 5000)
+    assert.equals(empresa.cantidadDeClientes(), 1)
+  }
+
+  test "La empresa recuerda a sus clientes" {
+    empresa.darServicio(ruben)
+    empresa.darServicio(mirna)
+    empresa.darServicio(clubRojo)
+    empresa.darServicio(asociadosPorLaPaz)
+    empresa.darServicio(clubBlanco)
+    assert.that(empresa.tieneCliente_(ruben))
+    assert.that(empresa.tieneCliente_(clubRojo))
+    assert.equals(empresa.cantidadDeClientes(), 5)
+  }
+
+  test "La empresa decide que un profesional no es atractivo" {
+    assert.notThat(empresa.esProfesional_PocoAtractivo(juana))
+    assert.notThat(empresa.esProfesional_PocoAtractivo(rocio))
+  }
+}
