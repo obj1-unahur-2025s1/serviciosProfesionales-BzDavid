@@ -1,6 +1,10 @@
 class ProfesionalVinculado {
   const property universidad
 
+  method initialize() {
+    validacion.validarUniversidad_(universidad)
+  }
+
   method honorarios() = universidad.honorarioRecomendado()
 
   method provincias() = [universidad.provincia()] 
@@ -16,6 +20,11 @@ class ProfesionalLitoral {
   const property universidad
 
   const property provincias = ["Entre Rios", "Santa Fe", "Corrientes"]
+
+  method initialize() {
+    validacion.validarUniversidad_(universidad)
+    validacion.validarListaDeProvincias_(provincias)
+  }
 
   method honorarios () = 3000
 
@@ -34,6 +43,12 @@ class ProfesionalLibre {
   const property provincias
 
   var totalRecaudado = 0
+
+  method initialize() {
+    validacion.validarUniversidad_(universidad)
+    validacion.validarListaDeProvincias_(provincias)
+    validacion.validarHonorarios_(honorarios)
+  }
 
   method dinero() = totalRecaudado
 
@@ -66,11 +81,18 @@ class Universidad {
 
   var totalDeDonacionesRecibidas = 0
 
+  method initialize() {
+    validacion.validarListaDeProvincias_([provincia])
+    validacion.validarHonorarios_(honorarioRecomendado)
+  }
+
   method recibirDonacion(cantidadADonar) {
     totalDeDonacionesRecibidas += cantidadADonar 
   }
 
   method totalDeDonacionesRecibidas() = totalDeDonacionesRecibidas
+
+  method esValida() = true
 }
 
 class EmpresaDeServicios {
@@ -79,6 +101,10 @@ class EmpresaDeServicios {
   const conjuntoDeClientes = #{} 
 
   const honorarioDeReferencia 
+
+  method initialize() {
+    validacion.validarHonorarios_(honorarioDeReferencia)
+  }
 
   method contratarProfesional(unProfesional) {
     empleados.add(unProfesional)
@@ -130,17 +156,29 @@ class EmpresaDeServicios {
 class PersonaSolicitante {
   const property provincia
 
+  method initialize() {
+    validacion.validarListaDeProvincias_([provincia])
+  }
+
   method puedeSerAtendidoPor_(unProfesional) = unProfesional.puedeTrabajarEnProvincia_(provincia)
 }
 
 class Institucion {
   const property universidadesReconocidas 
 
+  method initialize() {
+    validacion.validarUniversidades_(universidadesReconocidas)
+  }
+
   method puedeSerAtendidoPor_(unProfesional) = universidadesReconocidas.any({universidad => universidad == unProfesional.universidad()})
 }
 
 class Club {
   const property provincias
+
+  method initialize() {
+    validacion.validarListaDeProvincias_(provincias)
+  }
 
   method puedeSerAtendidoPor_(unProfesional) = provincias.any({provincia => unProfesional.puedeTrabajarEnProvincia_(provincia)})
 }
@@ -153,4 +191,39 @@ object asociacionProfesionalesLitoral {
   method recibirImporte(cantidadACobrar) {
     totalRecaudado += cantidadACobrar
   }
+}
+
+//Provincias
+object provincias {
+  method esValida_(unaProvincia) = self.lista().contains(unaProvincia) 
+
+  method esValidaLaLista_(listaDeProvincias) = listaDeProvincias.all({provincia => self.esValida_(provincia)})
+
+  method lista() = ["Buenos Aires", "Corrientes", "Entre Rios", "La Rioja", "Cordoba", "Santa Fe", "San Juan", "San Luis", "Mendoza", "Tucuman", "Catamarca", "Santiago del Estero", "Chaco", "Formosa", "Misiones", "Jujuy", "Salta", "Neuquen"]
+}
+
+object validacion {
+  method validarUniversidad_(unaUniversidad) {
+    if(not unaUniversidad.esValida()) {
+      self.error("La universidad no es válida")
+    }
+  }
+
+  method validarListaDeProvincias_(listaDeProvincias) {
+    if(not provincias.esValidaLaLista_(listaDeProvincias)) {
+      self.error("Algunas de las provincias no son válidas")
+    }
+  }
+
+  method validarHonorarios_(unHonorario) {
+    if(unHonorario <= 1000) {
+      self.error("El honorario debe ser mayor a 1000")
+    }
+  }
+
+  method validarUniversidades_(listaDeUniversidades) {
+    if(listaDeUniversidades.any({universidad => not universidad.esValida()})) {
+      self.error("Algunas de las universidades no son válidas")
+    }
+  } 
 }
